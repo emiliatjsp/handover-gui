@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Confirm pack complete</title>
+</head>
+<body>
+    <h1 class="title">Please confirm that the pack is complete</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">    
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+            <button type="submit" name="decision" value="confirm" class="submit-button">Confirm</button>
+        </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Choose object</title>
+</head>
+<body>
+    <h1 class="title">Choose object</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+        </div>
+        <div class="decision-buttons">
+            {% for i in "12345" %}
+            <div class="button-image-group">
+                <button type="submit" name="decision" value="{{i}}" class="decision-button">{{i}}</button>
+                {% static 'gui_app/images/object' as base_path %}
+                <img src="{{ base_path }}{{i}}.png" 
+                    alt="Object {{i}}"
+                    class="object-image"
+                    onerror="console.log('Error loading image')">
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</body>
+</html>
