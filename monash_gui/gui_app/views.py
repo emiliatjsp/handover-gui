@@ -5,6 +5,9 @@ from .csv_functions import CSV
 import time
 from threading import Thread
 
+detect_outcome = [1,1,1,0,1,0,1,1,0,1,1,1,0,1,1] # 25% error
+pickup_outcome = [1,1,0,1,0,1,1,0,1,1,1,0,1,1,1] # 25% error
+
 class AutoThread(Thread):
     def __init__(self, condition = "transparent"):
         super().__init__()
@@ -12,48 +15,226 @@ class AutoThread(Thread):
         self.counter = 0
         self.objects = ["object1","object2","object3"]
         self.condition = condition
-        self.hand_success = [1,0,1,0,1,0]
-        self.pickup_success = [1,0,1,0,1,0]
-    
+        
     def run(self):
-        # while objects in workspace
         while self.running and len(self.objects) != 0: 
             print("Objects in workspace: ",self.objects)
-            # if transparent
+            # PICKUP
             if self.condition == "transparent": 
-                print("picking up object")
-            # pick up object
-            #  TODO: pick up object
-            # check for hand detection hardcoded error 
-            success = self.hand_success.pop() 
+                print("Picking up object.")
+            global pickup_outcome
+            success = pickup_outcome.pop(0)
+            if success:
+                print("Robot picks up object correctly...")
+            else:
+                print("Robot picks up object incorrectly...")
+
+            # APPROACH
+            global detect_outcome
+            success = detect_outcome.pop(0) 
             if not success: 
-                # wait until hand is visible, then wait a few seconds
-                while self.counter < 5: 
+                while self.counter < 3: 
+                    print("Waiting until hand is visible...") # say out loud if transparent?
                     time.sleep(1)
-                    print(self.counter)
                     self.counter += 1
+                self.counter = 0
                 if self.condition == "transparent":
-                    print("I cannot see your hand")
-                # TODO: wait until hand is visible again
-                if self.condition == "transparent":
-                    print("I can see your hand. Approaching")
-                # TODO: approach
-            if self.pickup_success: # del
-                self.objects.pop() # del
+                    print("I cannot see your hand.") # also if counter > N
+            while self.counter < 3: 
+                time.sleep(1)
+                print("Waiting until hand is visible...") # say out loud if transparent?
+                self.counter += 1
+            self.counter = 0
+            if self.condition == "transparent":
+                print("I can see your hand. Approaching.")
+            print("Robot approaches...")
+
+            # RETREAT
+            while self.counter < 3: 
+                print("Waiting until Force > T...")
+                time.sleep(1)
+                self.counter += 1
+            self.counter = 0
+            if self.condition == "transparent":
+                print("retreating")
+            print("Robot retreats")
+            
+            #self.objects.pop() # del
 
     def stop(self):
         self.running = False
 
+class SemiAutoThread(Thread):
+    def __init__(self, condition = "transparent"):
+        super().__init__()
+        self.running = True
+        self.counter = 0
+        self.objects = ["object1","object2","object3"]
+        self.condition = condition
+        self.proceed = False
+        self.retry_active = False
+    
+    def run(self):
+        while self.running and len(self.objects) != 0: 
+            self.retry_active = False
+            print("Objects in workspace: ",self.objects)
+            
+            # PICKUP
+            print("Ready to pick up object")
+            while not self.proceed:
+                time.sleep(1)
+            self.proceed = False
+            if self.condition == "transparent": 
+                print("Picking up object.")
+            global pickup_outcome
+            success = pickup_outcome.pop(0)
+            if success:
+                print("Robot picks up object correctly...")
+            else:
+                print("Robot picks up object incorrectly...")
+                self.retry_active = True
+            
+            # APPROACH
+            global detect_outcome
+            success = detect_outcome.pop(0) 
+            # First check if hardcoded error
+            if not success: 
+                while self.counter < 5: 
+                    print("Waiting until hand is visible...") # say out loud if transparent?
+                    time.sleep(1)
+                    self.counter += 1
+                self.counter = 0
+                if self.condition == "transparent":
+                    print("I cannot see your hand.") # also if counter > N
+            # Then wait until hand is visible
+            while self.counter < 5: 
+                print("Waiting until hand is visible...")
+                time.sleep(1)
+                self.counter += 1
+            self.counter = 0
+            if self.condition == "transparent":
+                print("I can see your hand. Ready to approach.")
+                self.proceed = False
+            else:
+                print("Ready to approach.")
+                self.proceed = False
+            # Wait for button click
+            while not self.proceed:
+                time.sleep(1)
+            if self.condition == "transparent":
+                print("Approaching.")
+            print("Robot approaches...")
+            
+            # RETREAT
+            while self.counter < 5: 
+                print("Waiting until Force > T...")
+                time.sleep(1)
+                self.counter += 1
+            self.counter = 0
+            self.proceed = False
+            print("Ready to retreat.")
+            while not self.proceed:
+                time.sleep(1)
+            self.proceed = False
+            if self.condition == "transparent":
+                print("Retreating.")
+            print("Robot retreats...")
+
+            self.objects.pop() # del
+
+    def retry_pickup(self):
+        if self.retry_active:
+            self.retry_active = False
+            if self.condition == "transparent":
+                print("Picking up object.")
+            print("Robot picks up object correctly...")
+
+            # Then wait until hand is visible
+            while self.running and self.counter < 5: 
+                print("Waiting until hand is visible...")
+                time.sleep(1)
+                self.counter += 1
+            self.counter = 0
+            if self.condition == "transparent":
+                print("I can see your hand. Ready to approach.")
+                self.proceed = False
+            else:
+                print("Ready to approach.")
+                self.proceed = False
+        else:
+            print("This action is not possible right now")
+        
+    def stop(self):
+        self.running = False
+
+class ManualThread(Thread):
+    def __init__(self, condition = "transparent"):
+        super().__init__()
+        self.running = True
+        self.counter = 0
+        self.objects = ["object1","object2","object3"]
+        self.condition = condition
+        self.pickup = False
+        self.approach = False
+        self.retreat = False
+        self.object = "None"
+        self.object_in_hand = False
+
+    def run(self):
+        while self.running and len(self.objects) != 0: 
+            self.retry_active = False
+            #print("Objects in workspace: ",self.objects)
+            
+            # PICKUP   
+            if self.pickup and self.object!="None":
+                if self.object_in_hand:
+                    print("ERROR: cannot pick up object if still carrying one")
+                else:
+                    if self.condition == "transparent": 
+                        print("Picking up object: "+self.object)
+                    global pickup_outcome
+                    success = pickup_outcome.pop(0)
+                    if success:
+                        print("Robot picks up object correctly...")
+                        self.object_in_hand = True
+                    else:
+                        print("Robot picks up object incorrectly...")
+                self.pickup = False
+                self.object = "None"
+
+            # APPROACH
+            elif self.approach:
+                if self.condition == "transparent":
+                    print("Approaching.")
+                print("Robot approaches...")
+                self.approach = False
+            
+            # RETREAT
+            elif self.retreat:
+                if self.condition == "transparent":
+                    print("Retreating.")
+                print("Robot retreats...")
+                self.retreat = False
+
+                #self.objects.pop() # del
+
+                # TODO: CHECK FOR OBJECT IN HAND (F > T)
+                self.object_in_hand = False
+
+    def stop(self):
+        self.running = False
+        
 class Views():
     def __init__(self):
         self.trials = 5
         self.trial_no = 1
         self.condition = "transparent" #"opaque"
-        self.error = [0,0,0,1,0,1,0,0,1,0]
         self.participant_id = None
         self.mode = None
         self.csv = CSV()
         self.auto_thread = None
+        self.semi_auto_thread = None
+        self.manual_thread = None
 
     def health_check(self, request):
         return HttpResponse("OK", status=200)
@@ -76,7 +257,7 @@ class Views():
             elif decision == "semi_autonomous":
                 return redirect("semi_autonomous")
             elif decision == "manual":
-                return redirect("manual")
+                return redirect("manual",object="None")
         return render(request, 'gui_app/mode_selection.html')
 
     def autonomous(self,request):
@@ -98,43 +279,68 @@ class Views():
         return render(request, 'gui_app/autonomous.html')
 
     def semi_autonomous(self,request):
+        if request.method != 'POST':
+            self.semi_auto_thread = SemiAutoThread(self.condition)
+            self.semi_auto_thread.start()
+
         if request.method == 'POST':
             decision = request.POST.get('decision')
             self.update_csv(decision)
             if decision == "retry":
+                if self.semi_auto_thread:
+                    self.semi_auto_thread.retry_pickup()
                 return render(request, 'gui_app/semi_autonomous.html')
             elif decision == "proceed":
+                if self.semi_auto_thread:
+                    self.semi_auto_thread.proceed = True
                 return render(request, 'gui_app/semi_autonomous.html')
             elif decision == "complete":
+                if self.semi_auto_thread:
+                    self.semi_auto_thread.stop()
                 return redirect("confirm_complete", mode="semi_autonomous")
             elif decision == "back":
+                if self.semi_auto_thread:
+                    self.semi_auto_thread.stop()
                 return redirect("mode_selection")
         return render(request, 'gui_app/semi_autonomous.html')
 
-    def manual(self,request):
+    def manual(self, request, object):
+        if request.method != 'POST':
+            if not self.manual_thread:
+                self.manual_thread = ManualThread(self.condition)
+                self.manual_thread.start()
+            self.manual_thread.object = object
+            self.manual_thread.pickup = True
+
         if request.method == 'POST':
             decision = request.POST.get('decision')
             self.update_csv(decision)
             if decision == "pickup":
                 return redirect("choose_object")
-            elif decision == "approach_left":
+            elif decision == "approach":
+                self.manual_thread.approach = True
                 return render(request, 'gui_app/manual.html')
-            elif decision == "approach_right":
+            elif decision == "retreat":
+                self.manual_thread.retreat = True
                 return render(request, 'gui_app/manual.html')
             elif decision == "complete":
+                if self.manual_thread:
+                    self.manual_thread.stop()
                 return redirect("confirm_complete", mode="manual")
             elif decision == "back":
+                if self.manual_thread:
+                    self.manual_thread.stop()
                 return redirect("mode_selection")
-        return render(request, 'gui_app/manual.html')
+        return render(request, 'gui_app/manual.html',{"object":object})
 
     def choose_object(self,request):
         if request.method == 'POST':
             decision = request.POST.get('decision')
             self.update_csv(decision)
             if decision == "back":
-                return redirect("manual")
+                return redirect("manual",object="None")
             elif decision in ["1","2","3","4","5"]:
-                return redirect("manual")
+                return redirect("manual", object=decision)
         return render(request, 'gui_app/choose_object.html')
 
     def confirm_complete(self, request, mode):

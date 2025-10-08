@@ -1,1 +1,24 @@
 ID,Condition,Trial,Mode,Action,Time
+1,transparent,1,,begin,1759904715.3309174
+1,transparent,1,,start trial,1759904716.1502647
+1,transparent,1,autonomous,choose mode,1759904722.0819337
+1,transparent,1,autonomous,complete pack,1759904730.6065054
+1,transparent,1,autonomous,confirm,1759904736.5324368
+1,transparent,2,autonomous,start trial,1759904738.2164748
+1,transparent,2,semi_autonomous,choose mode,1759904740.082707
+1,transparent,2,semi_autonomous,proceed,1759904746.397918
+1,transparent,2,semi_autonomous,proceed,1759904750.1750524
+1,transparent,2,semi_autonomous,retry,1759904763.3794217
+1,transparent,2,semi_autonomous,proceed,1759904770.9575741
+1,transparent,2,semi_autonomous,proceed,1759904780.1811855
+1,transparent,2,semi_autonomous,complete,1759904783.3137386
+1,transparent,2,semi_autonomous,confirm,1759904820.6086278
+1,transparent,3,semi_autonomous,start trial,1759904822.7746797
+1,transparent,3,manual,choose mode,1759904824.4005706
+1,transparent,3,manual,pickup,1759904826.4262776
+1,transparent,3,manual,3,1759904827.756968
+1,transparent,3,manual,approach,1759904835.0086126
+1,transparent,3,manual,retreat,1759904836.717601
+1,transparent,3,manual,complete,1759904862.6591926
+1,transparent,3,manual,confirm,1759904863.9303503
+1,transparent,4,manual,start trial,1759904865.1469042
