@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Manual mode</title>
+</head>
+<body>
+    <h1 class="title">Manual mode</h1>
+    <h2 class="subtitle">{{ msg }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+            <button type="submit" name="decision" value="complete" class="submit-button">Pack complete</button>
+        </div>
+        <div class="decision-buttons">
+            <button type="submit" name="decision" value="pickup" class="decision-button">Pick up object</button>
+            <button type="submit" name="decision" value="approach" class="decision-button">Approach</button>
+            <button type="submit" name="decision" value="retreat" class="decision-button">Retreat</button>
+        </div>
+    </form>
+</body>
+</html>

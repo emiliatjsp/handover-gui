@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Semi-autonomous mode</title>
+</head>
+<body>
+    <h1 class="title">Semi-autonomous mode</h1>
+    <h2 class="subtitle">{{ msg }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+            <button type="submit" name="decision" value="complete" class="submit-button">Pack complete</button>
+        </div>
+        <div class="decision-buttons">
+            <button type="submit" name="decision" value="retry" class="decision-button">Retry pick up</button>
+            <button type="submit" name="decision" value="proceed" class="decision-button">Proceed</button>
+        </div>
+    </form>
+</body>
+</html>

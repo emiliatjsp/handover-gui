@@ -1,0 +1,107 @@
+ID,Condition,Trial,Mode,Action,Time
+,transparent,1,,back,1760329573.1132522
+,transparent,1,semi_autonomous,choose mode,1760329576.3672166
+,transparent,1,semi_autonomous,proceed,1760329588.1640942
+,transparent,1,semi_autonomous,back,1760329707.964523
+,transparent,1,semi_autonomous,choose mode,1760329710.6661987
+,transparent,1,semi_autonomous,proceed,1760329720.7743397
+,transparent,1,semi_autonomous,proceed,1760329735.1232393
+,transparent,1,semi_autonomous,proceed,1760329755.5994978
+,transparent,1,semi_autonomous,proceed,1760329765.9464142
+,transparent,1,semi_autonomous,proceed,1760329780.3519382
+,transparent,1,semi_autonomous,proceed,1760329793.111038
+,transparent,1,semi_autonomous,proceed,1760329800.8050406
+,transparent,1,semi_autonomous,retry,1760329816.8668966
+,transparent,1,semi_autonomous,proceed,1760329829.2876863
+,transparent,1,semi_autonomous,back,1760329835.0298343
+,transparent,1,autonomous,choose mode,1760329835.9689307
+,transparent,1,autonomous,go back,1760329848.159778
+,transparent,1,manual,choose mode,1760329849.5676265
+,transparent,1,manual,approach,1760329850.530219
+,transparent,1,manual,back,1760329851.6248782
+,transparent,1,manual,choose mode,1760329853.2413633
+,transparent,1,manual,pickup,1760329854.2123973
+,transparent,1,manual,2,1760329855.4306629
+,transparent,1,manual,back,1760329859.6651566
+,transparent,1,semi_autonomous,choose mode,1760330084.7884412
+,transparent,1,semi_autonomous,proceed,1760330086.0799928
+,transparent,1,semi_autonomous,back,1760330187.3733547
+,transparent,1,semi_autonomous,choose mode,1760330188.249233
+,transparent,1,semi_autonomous,proceed,1760330202.75284
+,transparent,1,semi_autonomous,back,1760330406.0548391
+,transparent,1,semi_autonomous,choose mode,1760330406.8731794
+,transparent,1,semi_autonomous,back,1760330434.892453
+,transparent,1,semi_autonomous,choose mode,1760330436.332884
+,transparent,1,semi_autonomous,back,1760330472.546922
+,transparent,1,semi_autonomous,choose mode,1760330473.744843
+,transparent,1,semi_autonomous,proceed,1760330474.467509
+,transparent,1,semi_autonomous,proceed,1760330488.679657
+,transparent,1,semi_autonomous,proceed,1760330502.778518
+,transparent,1,semi_autonomous,proceed,1760330510.273254
+,transparent,1,semi_autonomous,proceed,1760330523.586748
+,transparent,1,semi_autonomous,back,1760330700.4504154
+,transparent,1,semi_autonomous,choose mode,1760330701.3552513
+,transparent,1,semi_autonomous,proceed,1760330710.2001004
+,transparent,1,semi_autonomous,back,1760330785.905674
+,transparent,1,semi_autonomous,choose mode,1760330786.9307544
+,transparent,1,semi_autonomous,proceed,1760330797.258282
+,transparent,1,semi_autonomous,retry,1760330817.1758864
+,transparent,1,semi_autonomous,proceed,1760330823.151714
+,transparent,1,semi_autonomous,back,1760330872.920021
+,transparent,1,semi_autonomous,choose mode,1760330885.104691
+,transparent,1,semi_autonomous,proceed,1760330901.5280707
+,transparent,1,semi_autonomous,retry,1760330914.420908
+,transparent,1,semi_autonomous,retry,1760330932.5506942
+,transparent,1,semi_autonomous,proceed,1760330936.437904
+,transparent,1,semi_autonomous,back,1760331003.7264924
+,transparent,1,semi_autonomous,choose mode,1760331011.1865816
+,transparent,1,semi_autonomous,proceed,1760331012.3298874
+,transparent,1,semi_autonomous,back,1760331021.653304
+,transparent,1,autonomous,choose mode,1760331023.168952
+,transparent,1,autonomous,go back,1760331437.7784688
+,transparent,1,semi_autonomous,choose mode,1760331453.0753646
+,transparent,1,semi_autonomous,proceed,1760331459.666279
+,transparent,1,semi_autonomous,proceed,1760331476.5064845
+,transparent,1,semi_autonomous,complete,1760331481.9888694
+,transparent,1,semi_autonomous,confirm,1760331483.3036458
+,transparent,2,semi_autonomous,start trial,1760331484.5006359
+,transparent,2,autonomous,choose mode,1760331485.4261687
+,transparent,2,autonomous,go back,1760331606.062165
+,transparent,2,semi_autonomous,choose mode,1760331610.9522371
+,transparent,2,semi_autonomous,complete,1760331619.0117996
+,transparent,2,semi_autonomous,confirm,1760331619.9242296
+,transparent,3,semi_autonomous,start trial,1760331621.1116757
+,transparent,3,autonomous,choose mode,1760331622.6886375
+,transparent,3,autonomous,go back,1760331645.478753
+,transparent,3,semi_autonomous,choose mode,1760331650.893056
+,transparent,3,semi_autonomous,complete,1760331655.643476
+,transparent,3,semi_autonomous,confirm,1760331656.7976453
+,transparent,4,semi_autonomous,start trial,1760331672.7931743
+,transparent,4,semi_autonomous,choose mode,1760331946.4852064
+,transparent,4,semi_autonomous,complete,1760331949.9224453
+,transparent,4,semi_autonomous,confirm,1760331950.5021377
+,transparent,5,semi_autonomous,start trial,1760331953.999407
+,transparent,5,semi_autonomous,choose mode,1760331991.3162882
+,transparent,5,semi_autonomous,complete,1760331996.7235873
+,transparent,5,semi_autonomous,confirm,1760331997.4847724
+,transparent,6,semi_autonomous,end task,1760331998.7674356
+1,transparent,1,semi_autonomous,begin,1760332002.1236994
+1,transparent,1,semi_autonomous,start trial,1760332003.0314105
+1,transparent,1,semi_autonomous,choose mode,1760332003.816968
+1,transparent,1,semi_autonomous,complete,1760332008.7211502
+1,transparent,1,semi_autonomous,confirm,1760332009.567968
+1,transparent,2,semi_autonomous,start trial,1760332011.9762523
+1,transparent,2,autonomous,choose mode,1760332013.352354
+1,transparent,2,autonomous,complete pack,1760332060.702097
+1,transparent,2,autonomous,confirm,1760332061.511916
+1,transparent,3,autonomous,start trial,1760332062.6079752
+1,transparent,3,manual,choose mode,1760332081.9610481
+1,transparent,3,manual,pickup,1760332088.5749989
+1,transparent,3,manual,2,1760332089.7670476
+1,transparent,3,manual,retreat,1760332101.3722181
+1,transparent,3,manual,approach,1760332108.330806
+1,transparent,3,manual,middle,1760332109.287614
+1,transparent,3,manual,retreat,1760332120.8715312
+1,transparent,3,manual,complete,1760332126.205202
+1,transparent,3,manual,confirm,1760332126.9139895
+1,transparent,4,manual,start trial,1760332127.7925

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Mode selection</title>
+</head>
+<body>
+    <h1 class="title">Please select the robot mode</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="decision-buttons">
+            <button type="submit" name="decision" value="autonomous" class="decision-button">Autonomous</button>
+            <button type="submit" name="decision" value="semi_autonomous" class="decision-button">Semi-autonomous</button>
+            <button type="submit" name="decision" value="manual" class="decision-button">Manual</button>
+        </div>
+    </form>
+</body>
+</html>

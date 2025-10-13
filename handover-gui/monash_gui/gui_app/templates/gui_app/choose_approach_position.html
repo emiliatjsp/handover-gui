@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Choose approach position</title>
+</head>
+<body>
+    <h1 class="title">Choose approach area</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+        </div>
+        <div class="decision-buttons">
+            <button type="submit" name="decision" value="left" class="decision-button">Left</button>
+            <button type="submit" name="decision" value="middle" class="decision-button">Middle</button>
+            <button type="submit" name="decision" value="right" class="decision-button">Right</button>
+        </div>
+    </form>
+</body>
+</html>

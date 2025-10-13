@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Trial screen</title>
+</head>
+<body>
+    <h1 class="title">You will now begin trial {{ trial }} out of {{ no_trials }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="button-container">
+            <button type="submit" name="decision" value="ok" class="submit-button">OK</button>
+        </div>
+    </form>
+</body>
+</html>

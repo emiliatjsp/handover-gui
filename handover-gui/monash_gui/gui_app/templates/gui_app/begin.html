@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <title>Start Screen</title>
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+</head>
+<body>
+    <h1 class="title">Please enter your participant ID</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <label class="input-group label" for="participant_id">Participant ID:</label><br>
+            <input class="input-group input" type="text" id="participant_id" name="participant_id" required><br>
+        </div>
+        <div class="button-container">
+            <button type="submit" class="submit-button">Submit</button>
+        </div>
+    </form>
+</body>
+</html>

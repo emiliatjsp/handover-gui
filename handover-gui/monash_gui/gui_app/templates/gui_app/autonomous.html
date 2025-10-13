@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gui_app/css/styles.css' %}">
+    <title>Autonomous mode</title>
+</head>
+{% load django_browser_reload %}
+<body>
+    <h1 class="title">Autonomous mode</h1>
+    <h2 class="subtitle">{{ msg }}</h2>
+    <form method="post">
+        {% csrf_token %}    
+        <div class="button-container">    
+            <button type="submit" name="decision" value="back" class="back-button">Go back</button>
+            <button type="submit" name="decision" value="complete" class="submit-button">Pack complete</button>
+        </div>
+    </form>
+    {% django_browser_reload_script %}
+</body>
+</html>

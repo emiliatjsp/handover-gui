@@ -1,0 +1,185 @@
+/* Base styles */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Title styles */
+.title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #333;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 48px;
+}
+
+.subtitle {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #333;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 40px;
+}
+
+/* Input and label styles */
+.input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 10px 0;
+}
+
+.input-group label {
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #555;
+    font-family: Arial, sans-serif;
+}
+
+.input-group input {
+    width: 80%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: 2.5px solid #aaaaaa;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+    justify-content: center;
+}
+
+.input-group input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.input-group:last-child {
+    margin-bottom: 120px; /* Added to prevent overlap */
+}
+
+/* Decision buttons */
+.decision-buttons {
+    display: flex;
+    gap: 40px;
+    margin: 20px 0px;
+    justify-content: center;
+    width: 100%;
+}
+.decision-button {
+    padding: 15px 30px;
+    font-size: 26px;
+    font-family: Arial, sans-serif;
+    border: none;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.decision-button:hover {
+    background-color: #0056b3;
+}
+
+.button-image-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+}
+
+.object-image {
+    max-width: 80px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+/* Submit/OK/Confirm buttons */
+.submit-button {
+    max-width: min(150px, calc(50vw - 40px)); 
+    padding: 15px 30px;
+    border: none;
+    border-radius: 6px;
+    background-color: #28a72e;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-right: 10px;
+    margin-left: auto;
+    font-size: 26px;
+    font-family: Arial, sans-serif;
+}
+
+.submit-button:hover {
+    background-color: #218838;
+}
+
+/* Back button */
+.back-button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 6px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-right: auto;
+    font-size: 26px;
+    font-family: Arial, sans-serif;
+}
+
+.back-button:hover {
+    background-color: #bd2130;
+}
+
+/* Button container */
+.button-container {
+    position: fixed;
+    bottom: 300px; /* Increased from 20px to 60px */
+    width: 100%;
+    
+    padding: 0 20px;
+    display: flex;
+    justify-content: flex-end;
+    box-sizing: border-box;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
+    }
+    .subtitle {
+        font-size: 2rem;
+    }
+    .input-group {
+        max-width: 100%;
+    }
+    
+    .decision-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    .decision-button {
+        width: 100%;
+        max-width: 300px;
+    }
+    .button-container {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center !important; /* Center alignment on mobile */
+    }
+    .submit-button {
+        max-width: 100%;
+        width: auto;
+        margin-right: auto; /* Ensures right alignment when alone */
+    }
+}
