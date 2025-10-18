@@ -539,6 +539,7 @@ class StudyLoop:
                     playsound('/home/demo_ws/src/user_studies/audio/sound_files/transparent-pickup.mp3')
 
                 pick_success = self.pickup_outcome.pop(0)
+                #pickup_successful = self.pick_up_object(pick_obj="SPEAKER", success=pick_success)
                 pickup_successful = self.pick_up_object(pick_obj="CUBE", success=pick_success)
                 self.object_in_hand = pickup_successful 
                 print('Object in hand: '+str(self.object_in_hand))
