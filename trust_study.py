@@ -36,7 +36,7 @@ app = typer.Typer(pretty_exceptions_show_locals = False)
 
 default_start_point = [-0.26147651335049266, -0.38403684947300765, 0.05179618217418358]
 
-right_end_point = [0.601126, -0.145253, 0.356328]# [0.601126, 0.245253, 0.356328]
+right_end_point = [0.601126, 0.245253, 0.356328] #[0.601126, -0.145253, 0.356328]#
 middle_end_point = [0.601126, -0.145253, 0.356328]
 left_end_point = [0.601126, -0.445253, 0.356328] # TODO
 
@@ -164,6 +164,9 @@ class HandoverDemo:
         self.counter = 0
         self.no_hand = True
         self.active = False
+        self.slow_speed = 0.15
+        self.medium_speed = 0.45
+        self.fast_speed = 0.9
 
     def handover(self, placeholder, pick_success = True):
         self.active = True
@@ -255,7 +258,7 @@ class HandoverDemo:
             is_success = False
         return is_success
 
-    def go_to_home(self):
+    def go_to_home(self, speed='medium'):
         self.reached = False
         self.object_released = False
         rospy.set_param('handover_started', False)
@@ -265,20 +268,30 @@ class HandoverDemo:
         self.helper.move_gripper(width = 0.08)
         time.sleep(0.1)
 
-        self.commander.set_max_velocity_scaling_factor(0.5)
+        if speed == 'slow':
+            self.commander.set_max_velocity_scaling_factor(self.slow_speed)
+        elif speed == 'medium':
+            self.commander.set_max_velocity_scaling_factor(self.medium_speed)
+        elif speed == 'fast':
+            self.commander.set_max_velocity_scaling_factor(self.fast_speed)
         self.commander.set_named_target('ready')
         is_success = self.commander.go()
         if not is_success:
             return False
 
-    def retreat(self):
+    def retreat(self, speed='medium'):
         self.reached = False
         self.object_released = False
         rospy.set_param('handover_started', False)
         self.helper.switch_controller(self.moveit_controller)
         time.sleep(0.1)
         #Go back to home ('ready') position
-        self.commander.set_max_velocity_scaling_factor(0.5)
+        if speed == 'slow':
+            self.commander.set_max_velocity_scaling_factor(self.slow_speed)
+        elif speed == 'medium':
+            self.commander.set_max_velocity_scaling_factor(self.medium_speed)
+        elif speed == 'fast':
+            self.commander.set_max_velocity_scaling_factor(self.fast_speed)
         self.commander.set_named_target('ready')
         is_success = self.commander.go()
         if not is_success:
@@ -286,22 +299,33 @@ class HandoverDemo:
                 statement = input("Robot move error. Waiting for command to continue ")
                 time.sleep(1)
                 self.helper.recovery_client()
-                self.commander.set_max_velocity_scaling_factor(0.5)
+                if speed == 'slow':
+                    self.commander.set_max_velocity_scaling_factor(self.slow_speed)
+                elif speed == 'medium':
+                    self.commander.set_max_velocity_scaling_factor(self.medium_speed)
+                elif speed == 'fast':
+                    self.commander.set_max_velocity_scaling_factor(self.fast_speed)
                 self.commander.set_named_target('ready')
                 is_success = self.commander.go()
         return True
 
-    def object_prep(self, object_name, success=True):
+    def object_prep(self, object_name, success=True, speed='medium'):
         self.reached = False
         self.object_released = False
         rospy.set_param('handover_started', False)
 
-        #self.helper.switch_controller(self.moveit_controller)
+        self.helper.switch_controller(self.moveit_controller) #!!!
         
         self.helper.move_gripper(width = 0.08)
         time.sleep(0.1)
 
-        self.commander.set_max_velocity_scaling_factor(0.5)
+        print('pickup with speed: '+speed)
+        if speed == 'slow':
+            self.commander.set_max_velocity_scaling_factor(self.slow_speed)
+        elif speed == 'medium':
+            self.commander.set_max_velocity_scaling_factor(self.medium_speed)
+        elif speed == 'fast':
+            self.commander.set_max_velocity_scaling_factor(self.fast_speed)
         #self.commander.set_named_target('ready')
         #is_success = self.commander.go()
         #if not is_success:
@@ -338,9 +362,18 @@ class HandoverDemo:
                 # Lift the object 20 cm from ground
                 is_success = self.cartesian_move(pose_goal[0], pose_goal[1], pose_goal[2] + 0.2, -pose_goal[3])
                 time.sleep(0.01) 
+            
+            elif pose_goal is None:
+                return None
         
             self.helper.switch_controller(self.moveit_controller)
-            self.commander.set_max_velocity_scaling_factor(0.5)
+            if speed == 'slow':
+                self.commander.set_max_velocity_scaling_factor(self.slow_speed)
+            elif speed == 'medium':
+                self.commander.set_max_velocity_scaling_factor(self.medium_speed)
+            elif speed == 'fast':
+                self.commander.set_max_velocity_scaling_factor(self.fast_speed)
+
             self.commander.set_named_target('handover_ready_high')
             is_success = self.commander.go()
             if not is_success:
@@ -378,9 +411,7 @@ class StudyLoop:
         else:
             self.detect_outcome = [1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] # 25% error
             self.pickup_outcome = [1,1,1,0,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1] # 25% error
-        #self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
-        #self.object_list = ['CUBE','CUBE']
-        self.object_list = ["CUBE","LEFTDOCK","RIGHTDOCK","SPEAKER"]
+        self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
         # ros
         self.gui_listener = rospy.Subscriber("/gui_btn", String, self.gui_callback)
         self.msg_publisher = MsgPublisher()
@@ -401,6 +432,7 @@ class StudyLoop:
         self.pose = None
         self.task_running = False
         self.done = False
+        self.speed = None
         self.gui_blocker.enable()
         
     def signal_handler(self, sig, frame):
@@ -573,7 +605,7 @@ class StudyLoop:
             self.pose = "home"
             self.gui_blocker.enable()
 
-        elif self.pickup and self.object!=None:
+        elif self.pickup and self.object!=None and self.speed!=None:
             self.mode_blocker.disable()
             if self.object_in_hand:
                 self.voice_handler('pickup_error')
@@ -582,35 +614,40 @@ class StudyLoop:
                 self.gui_blocker.disable()
                 self.voice_handler('pickup')
                 pick_success = self.pickup_outcome.pop(0)
-                outcome = self.pick_up_object(pick_obj=self.object.upper(), success=pick_success)
+                outcome = self.pick_up_object(pick_obj=self.object.upper(), success=pick_success, speed=self.speed)
                 if not outcome:
                     self.mode_blocker.enable()
+                    self.obj.retreat(speed=self.speed)
+                    self.pose = "home"
                 self.pose = "pickup"
                 self.voice_handler() 
                 self.gui_blocker.enable()
             self.pickup = False
             self.object = None
+            self.speed = None
         
-        elif self.approach and self.approach_pos!=None and self.pose!="approach":
+        elif self.approach and self.approach_pos!=None and self.pose!="approach" and self.speed!=None:
             self.gui_blocker.disable()
             self.voice_handler('approach')
-            self.approach_human(position=self.approach_pos, pick_success=self.object_in_hand)
+            self.approach_human(position=self.approach_pos, pick_success=self.object_in_hand, speed=self.speed)
             self.approach = False
             self.approach_pos = None
+            self.speed = None
             self.pose = "approach"
             self.object_in_hand = False
             self.mode_blocker.enable()
             self.voice_handler()
             self.gui_blocker.enable()
 
-        elif self.retreat and self.pose != "home":
+        elif self.retreat and self.pose != "home" and self.speed!=None:
             self.gui_blocker.disable()
             self.voice_handler('retreat')
-            self.obj.retreat()
+            self.obj.retreat(speed=self.speed)
             self.retreat = False
             self.voice_handler()
             self.gui_blocker.enable()
             self.pose = "home"
+            self.speed = None
         
         else:
             self.gui_blocker.enable()
@@ -620,16 +657,22 @@ class StudyLoop:
             self.gui_blocker.enable()
             return
     
-    def pick_up_object(self, pick_obj="CUBE", success=True):
-        outcome = self.obj.object_prep(pick_obj, success=success)
-        if outcome:
-            self.object_list.remove(pick_obj)
-            print(self.object_list)
-        self.object_in_hand = outcome 
+    def pick_up_object(self, pick_obj="CUBE", success=True, speed='medium'):
+        print('selected speed: '+speed)
+        outcome = self.obj.object_prep(pick_obj, success=success, speed=speed)
+        if outcome is not None: 
+            if pick_obj in self.object_list:
+                self.object_list.remove(pick_obj)
+            self.object_in_hand = outcome 
+        else: 
+            self.gui_blocker.enable()
+            self.object_in_hand = False
+        print(self.object_list)
+        
         print('Object in hand: '+str(self.object_in_hand))
         return outcome
     
-    def approach_human(self, position = "middle", pick_success = True):
+    def approach_human(self, position = "middle", pick_success = True, speed = 'medium'):
         if self.mode == "manual":
             self.mux.select_input("phase_publisher_t")
         else:
@@ -641,21 +684,34 @@ class StudyLoop:
             rospy.set_param('final_x', middle_end_point[0])
             rospy.set_param('final_y', middle_end_point[1])
             rospy.set_param('final_z', middle_end_point[2])
+            rospy.set_param('B_A_ratio', 3.8399)
+            rospy.set_param('skewed_factor_single', 0.4)
         elif position == "left":
             print("set end point to left")
             rospy.set_param('final_x', left_end_point[0])
             rospy.set_param('final_y', left_end_point[1])
             rospy.set_param('final_z', left_end_point[2])
+            rospy.set_param('B_A_ratio', 3.8399)
+            rospy.set_param('skewed_factor_single', 0.4)
         elif position == "right":
             print("set end point to right")
             rospy.set_param('final_x', right_end_point[0])
             rospy.set_param('final_y', right_end_point[1])
             rospy.set_param('final_z', right_end_point[2])
+            rospy.set_param('B_A_ratio', 2)
+            rospy.set_param('skewed_factor_single', 0.2)
 
         rospy.set_param('init_x', current_pose.pose.position.x)
         rospy.set_param('init_y', current_pose.pose.position.y)
         rospy.set_param('init_z', current_pose.pose.position.z)
-        rospy.set_param('traj_time', 4.0)
+        
+        if speed == 'slow':
+            rospy.set_param('traj_time', 7.0)
+        elif speed == 'medium':
+             rospy.set_param('traj_time', 5.0)
+        elif speed == 'fast':
+            rospy.set_param('traj_time', 3.5)
+        
 
         self.obj.handover(int(0), pick_success)
         self.obj.helper.stop_gripper()
@@ -668,48 +724,58 @@ class StudyLoop:
             print("Picking up object...")
             if self.transparency:
                 self.msg_publisher.send_msg("Picking up object...")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='approach':
             print("Approaching...")
             if self.transparency:
                 self.msg_publisher.send_msg("Approaching...")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retreat':
             print("Retreating...")
             if self.transparency:
                 self.msg_publisher.send_msg("Retreating...")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='pickup_ready':
             print("Ready to pick up object")
             self.msg_publisher.send_msg("Ready to pick up object")
+            time.sleep(0.5)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='approach_ready':
             print("Ready to approach...")
             self.msg_publisher.send_msg("Ready to approach...")
+            time.sleep(0.5)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retreat_ready':
             print("Ready to retreat...")
             self.msg_publisher.send_msg("Ready to retreat...")
+            time.sleep(0.5)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='pickup_error':
             print("ERROR: cannot pick up another object")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: cannot pick up another object.")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retry_error':
             print("ERROR: cannot retry previous action")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: cannot retry previous action.")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='detect_error':
             print("ERROR: did not detect hand")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: I cannot see your hand")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='detect_wait':
             print("Waiting until hand is visible...")
             if self.transparency:
                 self.msg_publisher.send_msg("Waiting until hand is visible...")
+                time.sleep(0.5)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
     
     def gui_callback(self, data):
@@ -729,29 +795,31 @@ class StudyLoop:
             self.approach = False
             self.retreat = False
             self.approach_pos = None
+            self.speed = None
         elif data.data == "approach":
             self.approach = True
             self.pickup = False
             self.retreat = False
+            self.speed = None
         elif data.data == "retreat":
             self.retreat = True
             self.pickup = False
             self.approach = False
             self.approach_pos = None
-        elif data.data in ["Cube","Leftdock","Rightdock","Speaker"]:#["Sugar","Dock","Coffee","Tea","Speaker"]:
-            if data.data.upper() in self.object_list: # #!!!
+            self.speed = None
+        elif data.data in ["Sugar","Dock","Coffee","Tea","Speaker"]:
+            #if data.data.upper() in self.object_list: # #!!!
             #self.object = 'CUBE' #!!!!!!!!
-                self.object = data.data.upper()
-                print("object: "+str(self.object))
-            else:
-                self.gui_blocker.enable()
+            self.object = data.data.upper()
+            print("object: "+str(self.object))
+            #else:
+            #    self.gui_blocker.enable()
         elif data.data in ["left","middle","right"]:
             self.approach_pos = data.data
         elif data.data == 'confirm':
             self.reset()
-            self.object_list = ["CUBE","LEFTDOCK","RIGHTDOCK","SPEAKER"]
-            #self.object_list = ['CUBE','CUBE']
-            #self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
+            #self.object_list = ["CUBE","LEFTDOCK","RIGHTDOCK","SPEAKER"]
+            self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
         elif data.data == 'simple_back':
             self.gui_blocker.enable()
         elif data.data == 'back':
@@ -759,9 +827,13 @@ class StudyLoop:
                 self.gui_blocker.enable()
             self.reset()
             #self.mode = None
+        elif data.data in ['slow','medium','fast']:
+            print('new speed: '+data.data)
+            self.speed = data.data
     
     def reset(self):
         self.task_running = False
+        self.speed = 'medium'
         self.mode = None
         self.done = True
         self.object_in_hand = False
