@@ -363,8 +363,8 @@ class HandoverDemo:
                 is_success = self.cartesian_move(pose_goal[0], pose_goal[1], pose_goal[2] + 0.2, -pose_goal[3])
                 time.sleep(0.01) 
             
-            elif pose_goal is None:
-                return None
+            #elif pose_goal is None:
+            #    return None
         
             self.helper.switch_controller(self.moveit_controller)
             if speed == 'slow':
@@ -376,8 +376,11 @@ class HandoverDemo:
 
             self.commander.set_named_target('handover_ready_high')
             is_success = self.commander.go()
+            
             if not is_success:
                 return False
+            if pose_goal is None:
+                return None
             if not pose_goal:
                 return False
             
@@ -409,8 +412,8 @@ class StudyLoop:
             self.detect_outcome = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] 
             self.pickup_outcome = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] 
         else:
-            self.detect_outcome = [1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] # 25% error
-            self.pickup_outcome = [1,1,1,0,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1] # 25% error
+            self.detect_outcome = [1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] #[0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
+            self.pickup_outcome = [0,1,1,0,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1,1] #[1,0,0,1,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
         self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
         # ros
         self.gui_listener = rospy.Subscriber("/gui_btn", String, self.gui_callback)
@@ -519,7 +522,8 @@ class StudyLoop:
         self.mode_blocker.disable()
         self.voice_handler('pickup')
         pick_success = self.pickup_outcome.pop(0)
-        self.pick_up_object(pick_obj=self.object_list[0], success=pick_success)
+        current_pick_object = self.object_list[0]
+        self.pick_up_object(pick_obj=current_pick_object, success=pick_success)
         self.voice_handler('approach_ready')
         self.gui_blocker.enable()
 
@@ -535,7 +539,7 @@ class StudyLoop:
                         self.gui_blocker.disable()
                         self.voice_handler('pickup')
                         pick_success = True # fix mistake
-                        self.pick_up_object(pick_obj=self.object_list[0], success=pick_success)
+                        self.pick_up_object(pick_obj=current_pick_object, success=pick_success)
                         self.voice_handler('approach_ready')
                     else:
                         self.voice_handler('pickup_error')
@@ -560,6 +564,7 @@ class StudyLoop:
         self.gui_blocker.enable()
         self.proceed = False
         self.voice_handler('retreat_ready')
+        self.mode_blocker.enable()
         signal.signal(signal.SIGINT, self.signal_handler)
         try:
             while not self.proceed:
@@ -604,6 +609,7 @@ class StudyLoop:
             self.obj.go_to_home()
             self.pose = "home"
             self.gui_blocker.enable()
+            self.mode_blocker.enable()
 
         elif self.pickup and self.object!=None and self.speed!=None:
             self.mode_blocker.disable()
@@ -617,8 +623,8 @@ class StudyLoop:
                 outcome = self.pick_up_object(pick_obj=self.object.upper(), success=pick_success, speed=self.speed)
                 if not outcome:
                     self.mode_blocker.enable()
-                    self.obj.retreat(speed=self.speed)
-                    self.pose = "home"
+                #    self.obj.retreat(speed=self.speed)
+                #    self.pose = "home"
                 self.pose = "pickup"
                 self.voice_handler() 
                 self.gui_blocker.enable()
@@ -648,6 +654,8 @@ class StudyLoop:
             self.gui_blocker.enable()
             self.pose = "home"
             self.speed = None
+            if not self.object_in_hand:
+                self.mode_blocker.enable()
         
         else:
             self.gui_blocker.enable()
@@ -724,58 +732,58 @@ class StudyLoop:
             print("Picking up object...")
             if self.transparency:
                 self.msg_publisher.send_msg("Picking up object...")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='approach':
             print("Approaching...")
             if self.transparency:
                 self.msg_publisher.send_msg("Approaching...")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retreat':
             print("Retreating...")
             if self.transparency:
                 self.msg_publisher.send_msg("Retreating...")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='pickup_ready':
             print("Ready to pick up object")
             self.msg_publisher.send_msg("Ready to pick up object")
-            time.sleep(0.5)
+            time.sleep(1)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='approach_ready':
             print("Ready to approach...")
             self.msg_publisher.send_msg("Ready to approach...")
-            time.sleep(0.5)
+            time.sleep(1)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retreat_ready':
             print("Ready to retreat...")
             self.msg_publisher.send_msg("Ready to retreat...")
-            time.sleep(0.5)
+            time.sleep(1)
             playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='pickup_error':
             print("ERROR: cannot pick up another object")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: cannot pick up another object.")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='retry_error':
             print("ERROR: cannot retry previous action")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: cannot retry previous action.")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='detect_error':
             print("ERROR: did not detect hand")
             if self.transparency:
                 self.msg_publisher.send_msg("Error: I cannot see your hand")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
         elif msg=='detect_wait':
             print("Waiting until hand is visible...")
             if self.transparency:
                 self.msg_publisher.send_msg("Waiting until hand is visible...")
-                time.sleep(0.5)
+                time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
     
     def gui_callback(self, data):
