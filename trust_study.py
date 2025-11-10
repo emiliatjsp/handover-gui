@@ -13,6 +13,8 @@ import user_studies.object_detection as obj_dec
 import typer
 import signal
 import sys
+sys.path.append('/home/demo_ws/src/user_studies')
+from handover_gui.monash_gui.gui_app.csv_functions import CSV
 #from playsound import playsound
 from playsound3 import playsound #, AVAILABLE_BACKENDS, DEFAULT_BACKEND
 #print(AVAILABLE_BACKENDS) # See available backends on your system
@@ -167,6 +169,7 @@ class HandoverDemo:
         self.slow_speed = 0.15
         self.medium_speed = 0.45
         self.fast_speed = 0.9
+        self.csv = CSV(path_to_file='/home/demo_ws/src/user_studies/handover_gui/monash_gui/')
 
     def handover(self, placeholder, pick_success = True):
         self.active = True
@@ -178,6 +181,7 @@ class HandoverDemo:
             input("press ENTER to start moving ...")
         
         self.counter = 0
+        self.csv.update_csv(None,None,None,None,'r_handover_start')
         while not self.reached:
             self.helper.switch_controller(active_controller)
             time.sleep(0.01)    # This is because of how controller_manager works: start -> stop -> start -> update, so if we 
@@ -200,6 +204,7 @@ class HandoverDemo:
             
             while not rospy.is_shutdown():
                 if self.object_released or not pick_success:
+                    self.csv.update_csv(None,None,None,None,'r_release_object')
                     break
                 if not self.reached:
                     rospy.set_param('handover_started', True)
@@ -238,7 +243,6 @@ class HandoverDemo:
             if data.data < 0.70 and self.counter > 100: #!
                 print("ERROR: did not detect hand")
                 if self.transparency:
-                    #self.msg_publisher.send_msg("Error: I cannot see your hand")
                     playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/detect_error.mp3')
                 print("Did not detect hand with distance {d} and counter {c}".format(d=data.data,c=self.counter))
                 self.counter = 0
@@ -259,6 +263,7 @@ class HandoverDemo:
         return is_success
 
     def go_to_home(self, speed='medium'):
+        self.csv.update_csv(None,None,None,None,'r_go_to_home')
         self.reached = False
         self.object_released = False
         rospy.set_param('handover_started', False)
@@ -280,12 +285,13 @@ class HandoverDemo:
             return False
 
     def retreat(self, speed='medium'):
+        self.csv.update_csv(None,None,None,None,'r_retreat')
         self.reached = False
         self.object_released = False
         rospy.set_param('handover_started', False)
         self.helper.switch_controller(self.moveit_controller)
         time.sleep(0.1)
-        #Go back to home ('ready') position
+        # Go back to home ('ready') position
         if speed == 'slow':
             self.commander.set_max_velocity_scaling_factor(self.slow_speed)
         elif speed == 'medium':
@@ -352,9 +358,12 @@ class HandoverDemo:
                 if success:
                     #is_success = self.helper.close_gripper(width = pose_goal[4], force = 20.0, speed = 0.5)  #!!!!!
                     is_success = self.helper.close_gripper(width = pose_goal[4], force = 10.0, speed = 0.5)  # changed force for testing
+                    print('close gripper')
+                    self.csv.update_csv(None,None,None,None,'r_pickup_success: '+object_name)
                     print("Picking up object successfully...")
                 else:
                     is_success = self.helper.move_gripper(width = pose_goal[6], speed = 0.5) # use error_width
+                    self.csv.update_csv(None,None,None,None,'r_pickup_failure: '+object_name)
                     print("Picking up object unsuccessfully...")
                 if not is_success:
                     return False
@@ -396,8 +405,10 @@ class HandoverDemo:
                 return False
             if success:
                 print("Picking up object successfully...")
+                self.csv.update_csv(None,None,None,None,'r_pickup_success: '+object_name)
             else:
                 print("Picking up object unsuccessfully...")
+                self.csv.update_csv(None,None,None,None,'r_pickup_failure: '+object_name)
 
         return success
 
@@ -412,9 +423,10 @@ class StudyLoop:
             self.detect_outcome = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] 
             self.pickup_outcome = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] 
         else:
-            self.detect_outcome = [1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] #[0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
-            self.pickup_outcome = [0,1,1,0,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1,1] #[1,0,0,1,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
+            self.detect_outcome = [1,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1] #[0,1,1,0,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
+            self.pickup_outcome = [1,1,1,0,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1,1,1,1] #[1,0,0,1,1,1,1,0,1,1,1,1,1,1,1] # # 25% error
         self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
+        self.failed_object_list = []
         # ros
         self.gui_listener = rospy.Subscriber("/gui_btn", String, self.gui_callback)
         self.msg_publisher = MsgPublisher()
@@ -437,6 +449,7 @@ class StudyLoop:
         self.done = False
         self.speed = None
         self.gui_blocker.enable()
+        self.csv = CSV(path_to_file='/home/demo_ws/src/user_studies/handover_gui/monash_gui/')
         
     def signal_handler(self, sig, frame):
         print("\nKeyboardInterrupt detected. Exiting loop gracefully.")
@@ -452,9 +465,10 @@ class StudyLoop:
             r = rospy.Rate(60)
             self.msg_publisher.send_msg("\n")
             self.done = False #!
+            #has_pending_objects = len(self.object_list) != 0 or len(self.failed_object_list) != 0
             if self.mode == "autonomous" and len(self.object_list) != 0:
                 self.autonomous_loop()
-            elif self.mode == "semi_autonomous" and len(self.object_list) != 0:
+            elif self.mode == "semi_autonomous": #and has_pending_objects:
                 self.semi_autonomous_loop()
             elif self.mode == "manual":
                 self.manual_loop()
@@ -478,17 +492,19 @@ class StudyLoop:
         detect_success = self.detect_outcome.pop(0)
         if not detect_success:
             time.sleep(7)
+            self.csv.update_csv(None,None,None,None,'r_detect_error')
             self.voice_handler('detect_error')
             time.sleep(7)
             self.voice_handler()
         
-        #self.voice_handler('approach')
-        self.approach_human(position="middle", pick_success=pick_success)       
+        self.voice_handler('approach')
+        self.approach_human(position="middle", pick_success=pick_success)    
         self.voice_handler('retreat')
         self.obj.go_to_home()
+        if len(self.object_list)==0:
+            self.voice_handler('done')
 
         if self.mode != 'autonomous':
-            # TODO: block buttons if go back, enable again when a loop is complete
             self.task_running = False
             self.gui_blocker.enable()
             return
@@ -517,15 +533,23 @@ class StudyLoop:
         except Exception as e:
             print(f"\nUnexpected error: {e}")
             raise
+
         self.proceed = False
         self.gui_blocker.disable()
         self.mode_blocker.disable()
         self.voice_handler('pickup')
         pick_success = self.pickup_outcome.pop(0)
-        current_pick_object = self.object_list[0]
+        if len(self.object_list) != 0:
+            current_pick_object = self.object_list[0]
+        elif len(self.failed_object_list) != 0:
+            current_pick_object = self.failed_object_list[0]
+        else:
+            current_pick_object = 'CUBE'
         self.pick_up_object(pick_obj=current_pick_object, success=pick_success)
         self.voice_handler('approach_ready')
         self.gui_blocker.enable()
+        if not self.object_in_hand:
+            self.mode_blocker.enable()
 
         signal.signal(signal.SIGINT, self.signal_handler)
         try:
@@ -541,6 +565,7 @@ class StudyLoop:
                         pick_success = True # fix mistake
                         self.pick_up_object(pick_obj=current_pick_object, success=pick_success)
                         self.voice_handler('approach_ready')
+                        self.mode_blocker.disable()
                     else:
                         self.voice_handler('pickup_error')
                     self.gui_blocker.enable()
@@ -555,10 +580,11 @@ class StudyLoop:
         self.voice_handler('detect_wait')
         if not detect_success:
             time.sleep(7)
+            self.csv.update_csv(None,None,None,None,'r_detect_error')
             self.voice_handler('detect_error')
             time.sleep(7)
             self.voice_handler()
-        #self.voice_handler('approach')
+        self.voice_handler('approach')
         self.approach_human(position="middle", pick_success=pick_success)
         self.object_in_hand = False
         self.gui_blocker.enable()
@@ -574,18 +600,8 @@ class StudyLoop:
                 elif self.retry:
                     self.gui_blocker.disable()
                     self.voice_handler('retry_error')
-                    # TODO: Figure out if robot should retry approach action
-                    #self.obj.retreat()
-                    #if self.transparency:
-                    #    self.msg_publisher.send_msg("Approaching...")
-                    #    playsound('/home/demo_ws/src/user_studies/audio/sound_files/transparent-approaching.mp3')
-                    #self.approach_human(position="middle", pick_success=False)
-                    #self.object_in_hand = False
                     self.retry = False
                     self.gui_blocker.enable()
-                    #print("Ready to approach...")
-                    #self.msg_publisher.send_msg("Ready to approach...")
-                    #playsound('/home/demo_ws/src/user_studies/audio/sound_files/semi-opaque-approach.mp3')
                 time.sleep(0.1)
         
         except Exception as e:
@@ -623,8 +639,6 @@ class StudyLoop:
                 outcome = self.pick_up_object(pick_obj=self.object.upper(), success=pick_success, speed=self.speed)
                 if not outcome:
                     self.mode_blocker.enable()
-                #    self.obj.retreat(speed=self.speed)
-                #    self.pose = "home"
                 self.pose = "pickup"
                 self.voice_handler() 
                 self.gui_blocker.enable()
@@ -671,12 +685,17 @@ class StudyLoop:
         if outcome is not None: 
             if pick_obj in self.object_list:
                 self.object_list.remove(pick_obj)
-            self.object_in_hand = outcome 
+            elif pick_obj in self.failed_object_list:
+                self.failed_object_list.remove(pick_obj)
+            if not outcome:
+                self.failed_object_list.append(pick_obj)
+            self.object_in_hand = outcome
         else: 
+            self.csv.update_csv(None,None,None,None,'r_object_not_found: '+pick_obj)
             self.gui_blocker.enable()
             self.object_in_hand = False
-        print(self.object_list)
-        
+        print('Object list: '+str(self.object_list))
+        print('Failed object list: '+str(self.failed_object_list))
         print('Object in hand: '+str(self.object_in_hand))
         return outcome
     
@@ -720,7 +739,7 @@ class StudyLoop:
         elif speed == 'fast':
             rospy.set_param('traj_time', 3.5)
         
-
+        self.csv.update_csv(None,None,None,None,'r_approach')
         self.obj.handover(int(0), pick_success)
         self.obj.helper.stop_gripper()
         self.object_in_hand = False
@@ -785,6 +804,12 @@ class StudyLoop:
                 self.msg_publisher.send_msg("Waiting until hand is visible...")
                 time.sleep(1)
                 playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
+        elif msg=='done':
+            print("Completed picking all objects...")
+            if self.transparency:
+                self.msg_publisher.send_msg("Completed picking all objects")
+                time.sleep(1)
+                playsound(f'/home/demo_ws/src/user_studies/audio/sound_files/{msg}.mp3')
     
     def gui_callback(self, data):
         self.last_btn = data.data
@@ -816,25 +841,20 @@ class StudyLoop:
             self.approach_pos = None
             self.speed = None
         elif data.data in ["Sugar","Dock","Coffee","Tea","Speaker"]:
-            #if data.data.upper() in self.object_list: # #!!!
-            #self.object = 'CUBE' #!!!!!!!!
             self.object = data.data.upper()
             print("object: "+str(self.object))
-            #else:
-            #    self.gui_blocker.enable()
         elif data.data in ["left","middle","right"]:
             self.approach_pos = data.data
         elif data.data == 'confirm':
             self.reset()
-            #self.object_list = ["CUBE","LEFTDOCK","RIGHTDOCK","SPEAKER"]
             self.object_list = ['SUGAR','DOCK','SPEAKER','COFFEE','TEA']
+            self.failed_object_list = []
         elif data.data == 'simple_back':
             self.gui_blocker.enable()
         elif data.data == 'back':
             if self.mode != 'autonomous':
                 self.gui_blocker.enable()
             self.reset()
-            #self.mode = None
         elif data.data in ['slow','medium','fast']:
             print('new speed: '+data.data)
             self.speed = data.data
